@@ -2,9 +2,7 @@ package com.apps.anker.facepunchdroid;
 
 import android.Manifest;
 import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -12,32 +10,24 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.pm.ShortcutInfo;
-import android.content.pm.ShortcutManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.Icon;
 import android.net.MailTo;
 import android.net.Uri;
 import android.os.Build;
-import android.preference.Preference;
 import android.preference.PreferenceManager;
-import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.Toolbar;
-import android.telephony.TelephonyManager;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -55,47 +45,33 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
-import android.webkit.WebChromeClient;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.NumberPicker;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.apps.anker.facepunchdroid.Facepunch.Objects.SubscriptionFolder;
-import com.apps.anker.facepunchdroid.Facepunch.Subscription;
 import com.apps.anker.facepunchdroid.Migrations.MainMigration;
 import com.apps.anker.facepunchdroid.Pagepinning.PagePinningManager;
 import com.apps.anker.facepunchdroid.RealmObjects.UserScript;
-import com.apps.anker.facepunchdroid.Services.PrivateMessageService;
 import com.apps.anker.facepunchdroid.Services.ServiceManager;
-import com.apps.anker.facepunchdroid.Tools.Assets;
 import com.apps.anker.facepunchdroid.Tools.CustomTabsHelper;
 import com.apps.anker.facepunchdroid.Tools.Downloading;
 import com.apps.anker.facepunchdroid.Tools.Language;
 import com.apps.anker.facepunchdroid.Tools.ShortcutsManager;
-import com.apps.anker.facepunchdroid.Tools.UriHandling;
 import com.apps.anker.facepunchdroid.Webview.VideoEnabledWebChromeClient;
 import com.apps.anker.facepunchdroid.Webview.VideoEnabledWebView;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.koushikdutta.async.future.FutureCallback;
-import com.koushikdutta.async.http.Headers;
 import com.koushikdutta.ion.Ion;
-import com.koushikdutta.ion.cookie.CookieMiddleware;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -117,11 +93,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import java.nio.charset.StandardCharsets;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -165,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
     boolean enableUserscripts;
     String selectedLang;
 
-    SwipeRefreshLayout mSwipeRefreshLayout;
+	LinearLayout mainViewGroup;
     Toolbar toolbar;
     private String mActivityTitle;
 
@@ -396,8 +367,6 @@ public class MainActivity extends AppCompatActivity {
                 // Show progressbar
                 pb.setProgress(0);
                 pb.setVisibility(View.VISIBLE);
-                mSwipeRefreshLayout.setRefreshing(true);
-                mSwipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
 
 
                 Log.d("Webview", "onPageStarted " + url);
@@ -646,7 +615,6 @@ public class MainActivity extends AppCompatActivity {
 
 
                 pb.setVisibility(View.GONE);
-                mSwipeRefreshLayout.setRefreshing(false);
 
                 if(!userHasEnabledCustomCSS && !userHasEnabledCustomCSSDialogShown) {
 
@@ -775,16 +743,6 @@ public class MainActivity extends AppCompatActivity {
             webview.loadUrl(IntentData.toString());
         }
 
-        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.refresh);
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                webview.reload();
-
-
-            }
-
-        });
         setupSearchToolbar();
 
         Intent messageintent = getIntent();
@@ -951,7 +909,7 @@ public class MainActivity extends AppCompatActivity {
 
                         clipboard.setPrimaryClip(clip);
 
-                        Snackbar.make((SwipeRefreshLayout) findViewById(R.id.refresh), R.string.snackbar_copied, Snackbar.LENGTH_LONG).show();
+                        Snackbar.make((LinearLayout) findViewById(R.id.refresh), R.string.snackbar_copied, Snackbar.LENGTH_LONG).show();
                         break;
                     case 10:
                         ClipboardManager clipboard2 = (ClipboardManager)
@@ -961,7 +919,7 @@ public class MainActivity extends AppCompatActivity {
 
                         clipboard2.setPrimaryClip(clip2);
 
-                        Snackbar.make((SwipeRefreshLayout) findViewById(R.id.refresh), R.string.snackbar_copied, Snackbar.LENGTH_LONG).show();
+                        Snackbar.make((LinearLayout) findViewById(R.id.refresh), R.string.snackbar_copied, Snackbar.LENGTH_LONG).show();
                         break;
                 }
 
@@ -1295,7 +1253,7 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     case R.id.pinpage:
                         PagePinningManager.pin_page(mActivity, webview.getTitle(), webview.getUrl());
-                        final SwipeRefreshLayout mlayout = (SwipeRefreshLayout) findViewById(R.id.refresh);
+                        final LinearLayout mlayout = (LinearLayout) findViewById(R.id.refresh);
                         Snackbar.make(mlayout, getString(R.string.paged_was_pinned), Snackbar.LENGTH_LONG).show();
                         updateShortcuts();
 
@@ -1319,7 +1277,7 @@ public class MainActivity extends AppCompatActivity {
                         editor.apply();
 
                         // Show snackbar
-                        SwipeRefreshLayout mlayout2 = (SwipeRefreshLayout) findViewById(R.id.refresh);
+						LinearLayout mlayout2 = (LinearLayout) findViewById(R.id.refresh);
                         Snackbar.make(mlayout2, getString(R.string.new_startpage_set), Snackbar.LENGTH_LONG).show();
                         return true;
                     case R.id.dissableAllImages:
